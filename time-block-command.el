@@ -84,8 +84,8 @@ BODY is the body of the code.  This should include an
                              (first body)))
          (body (if interactive-spec (rest body) body))
          (condition (if override-prompt
-                        `(or (time-block-group-blocked-p ',group)
-                             (yes-or-no-p ,override-prompt))
+                        `(and (time-block-group-blocked-p ',group)
+                              (yes-or-no-p ,override-prompt))
                       `(time-block-group-blocked-p ',group))))
     (if docstring
         `(defun ,name ,argslist
