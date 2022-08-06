@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block-command
-;; Version: 0.0.1
+;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.0") (ts "0.1"))
 ;; Keywords: productivity, time blocking
 
@@ -30,15 +30,40 @@
 
 ;; Variables:
 
-(defvar time-block-command-groups nil
-  "Groups used for blocking commands by time.
+(defgroup time-block ()
+  "Variables controlling `time-block' functionality.")
 
-Alist, key is group name (symbol) and alist of blocks: (day
-. ((start end) ...)), with day as numeric day of week.")
+(defcustom time-block-groups nil
+  "Define time blocking groups.
+
+This variable is an alist from group names (symbols) to group
+definitions.
+
+Group definitions are alists from days of the week (numbers,
+below) to (plural) start/end pairs.
+
+Day        Number
+---------- ------
+Sunday     0, 7
+Monday     1
+Tuesday    2
+Wednesday  3
+Thursday   4
+Friday     5
+Saturday   6"
+  :type '(alist :tag "Group Definitions"
+                :key-type (symbol :tag "Group Name")
+                :value-type (alist :tag "Group Definition"
+                                   :key-type (natnum :tag "Day Number")
+                                   :value-type (repeat :tag "Start/End Times"
+                                                       (cons (string :tag "Start")
+                                                             (string :tag "End"))))))
+
+(make-obsolete-variable time-block-command-groups time-block-groups "time-block 0.1.0")
 
 (defun time-block-group-blocked-p (group-name)
   "Is group GROUP-NAME currently blocked?"
-  (when-let ((group (rest (assoc group-name time-block-command-groups)))
+  (when-let ((group (rest (assoc group-name time-block-groups)))
              (ts-now (ts-now))
              (current-day (ts-dow ts-now))
              (day-blocks (rest (assoc current-day group)))
@@ -53,7 +78,9 @@ Alist, key is group name (symbol) and alist of blocks: (day
          (and (ts<= start now)
               (ts<= now end))))))
 
-(cl-defmacro timeblock-define-block-command (name argslist (group block-message &optional override-prompt) &body body)
+(make-obsolete 'timeblock-define-block-command 'define-time-blocked-command "time-block 0.1.0")
+
+(cl-defmacro define-time-blocked-command (name argslist (group block-message &optional override-prompt) &body body)
   "Define NAME as a time-blocked command.
 
 ARGSLIST are the arguments which the command takes.
