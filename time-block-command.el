@@ -59,7 +59,7 @@ Saturday   6"
                                                        (cons (string :tag "Start")
                                                              (string :tag "End"))))))
 
-(make-obsolete-variable time-block-command-groups time-block-groups "time-block 0.1.0")
+(make-obsolete-variable 'time-block-command-groups 'time-block-groups "time-block 0.1.0")
 
 (defun time-block-group-blocked-p (group-name)
   "Is group GROUP-NAME currently blocked?"
