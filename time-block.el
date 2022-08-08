@@ -76,6 +76,7 @@
 ;;                    "You have decided not to check news currently.\nStill start elfeed?")
 
 (require 'ts)
+(require 'cl-lib)
 
 ;;; Code:
 
