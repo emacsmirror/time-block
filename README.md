@@ -48,6 +48,18 @@ Time blocked according to `time-block-command-groups'."
   (elfeed))
 ```
 
+### Advising commands to be time-blocked
+
+Commands can also be advised to use timeblocking.  This works for
+simpler commands, and as a bonus, can make it harder to access the
+commands when blocked.  Overall, the arguments for `group`,
+`block-message` and `override-prompt` are as above.  Consider the
+following example.
+
+```elisp
+(time-block-advise my/elfeed-block-advice 'elfeed workday "You have decided not to check news currently."
+                                                          "You have decided not to check news currently.\nStill start elfeed?")
+```
 
 ## Errors and Bugs
 

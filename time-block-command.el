@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block-command
-;; Version: 0.1.0
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "28.0") (ts "0.1"))
 ;; Keywords: productivity, time blocking
 
@@ -23,6 +23,57 @@
 
 ;;; Commentary:
 ;;
+
+;; This package requires [`ts.el`](https://github.com/alphapapa/ts.el) to
+;; handle time parsing.
+;;
+;; Download `time-block-command.el` to somewhere on your `load-path' and
+;; load with `(require 'time-block-command)`.
+;;
+;;;; Usage
+;;
+;; To use this package it's necessary to do two things: define time
+;; blocking groups and define time blocked commands.
+;;
+;;;;  Time Blocking Groups
+;;
+;; Customize the variable `time-block-groups'.  An example of a groups definition is below.
+;;
+;; (setf time-block-groups '((workday . ((1 . (("09:00" . "17:00")))
+;;                                       (2 . (("09:00" . "17:00")))
+;;                                       (3 . (("09:00" . "17:00")))
+;;                                       (4 . (("09:00" . "17:00")))
+;;                                       (5 . (("09:00" . "17:00")))))))
+;;
+;;;; Defining Time Blocked Commands
+;;
+;; Commands are only time-blocked if they're defined.  This is done using
+;; the `define-time-blocked-command` macro, which behaves similarly to
+;; `defun`.  After the lambda list, it has a list describing blocking and
+;; blocking messages.  This is composed of a symbol (a key in
+;; `time-block-groups') a block message, and an optional override prompt
+;; (if present, the command will ask if you'd like to override the block
+;;     using `yes-or-no-p').  An example is shown below.
+;;
+;; (define-time-blocked-command my/start-elfeed ()
+;;                              (workday "You have decided not to check news currently."
+;;                                       "You have decided not to check news currently.\nStill start elfeed?")
+;;   "Start `elfeed'.
+;;
+;; Time blocked according to `time-block-command-groups'."
+;;   (interactive)
+;;   (elfeed))
+;;
+;;;; Advising commands to be time-blocked
+;;
+;; Commands can also be advised to use timeblocking.  This works for
+;; simpler commands, and as a bonus, can make it harder to access the
+;; commands when blocked.  Overall, the arguments for `group`,
+;; `block-message` and `override-prompt` are as above.  Consider the
+;; following example.
+;;
+;; (time-block-advise my/elfeed-block-advice 'elfeed workday "You have decided not to check news currently."
+;;                    "You have decided not to check news currently.\nStill start elfeed?")
 
 (require 'ts)
 
@@ -126,6 +177,26 @@ BODY is the body of the code.  This should include an
          (if ,condition
              (message ,block-message)
            ,@body)))))
+
+(defmacro time-block-advise (advice-name command group block-message &optional override-prompt)
+  "Define `:around' advice for COMMAND called ADVICE-NAME.
+
+Use BLOCK-MESSAGE to notify user if run is currently blocked by
+GROUP.  If OVERRIDE-PROMPT is present, use `yes-or-no-p' to ask
+if blocking should be overridden."
+  (let ((condition (if override-prompt
+                       `(and (time-block-group-blocked-p ',group)
+                             (yes-or-no-p ,override-prompt))
+                     `(time-block-group-blocked-p ',group))))
+    `(progn
+       (defun ,advice-name (orig &rest args)
+         (interactive)
+         (if ,condition
+             (message ,block-message)
+           (if (called-interactively-p)
+               (call-interactively orig)
+             (apply orig args))))
+       (advice-add ,command :around #',advice-name))))
 
 (provide 'time-block-command)
 
