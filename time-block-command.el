@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block-command
-;; Version: 0.2.0
+;; Version: 0.2.1
 ;; Package-Requires: ((emacs "28.0") (ts "0.1"))
 ;; Keywords: productivity, time blocking
 
@@ -163,7 +163,7 @@ BODY is the body of the code.  This should include an
          (body (if interactive-spec (rest body) body))
          (condition (if override-prompt
                         `(and (time-block-group-blocked-p ',group)
-                              (yes-or-no-p ,override-prompt))
+                              (not (yes-or-no-p ,override-prompt)))
                       `(time-block-group-blocked-p ',group))))
     (if docstring
         `(defun ,name ,argslist
@@ -186,7 +186,7 @@ GROUP.  If OVERRIDE-PROMPT is present, use `yes-or-no-p' to ask
 if blocking should be overridden."
   (let ((condition (if override-prompt
                        `(and (time-block-group-blocked-p ',group)
-                             (yes-or-no-p ,override-prompt))
+                             (not (yes-or-no-p ,override-prompt)))
                      `(time-block-group-blocked-p ',group))))
     `(progn
        (defun ,advice-name (orig &rest args)
