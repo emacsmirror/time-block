@@ -1,4 +1,4 @@
-# time-block-command
+# time-block
 
 A method for blocking access to emacs commands based on time.
 
@@ -7,8 +7,8 @@ A method for blocking access to emacs commands based on time.
 This package requires [`ts.el`](https://github.com/alphapapa/ts.el) to
 handle time parsing.
 
-Download `time-block-command.el` to somewhere on your `load-path` and
-load with `(require 'time-block-command)`.
+Download `time-block.el` to somewhere on your `load-path` and
+load with `(require 'time-block)`.
 
 ## Usage
 
@@ -43,7 +43,7 @@ using `yes-or-no-p`).  An example is shown below.
                                       "You have decided not to check news currently.\nStill start elfeed?")
   "Start `elfeed'.
 
-Time blocked according to `time-block-command-groups'."
+Time blocked according to `time-block-groups'."
   (interactive)
   (elfeed))
 ```
