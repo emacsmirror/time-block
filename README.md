@@ -64,4 +64,4 @@ following example.
 ## Errors and Bugs
 
 If you find an error or a bug, send an email to
-`~swflint/public-inbox@lists.sr.ht`.
+`~swflint/time-block-command@lists.sr.ht`.
