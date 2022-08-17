@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 0.2.1
+;; Version: 0.3.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 
