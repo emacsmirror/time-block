@@ -122,7 +122,7 @@ Saturday   6"
              (day-blocks (cl-rest (assoc current-day group)))
              (now (ts-parse (ts-format "%H:%M" ts-now))))
     (cl-do* ((pair (cl-first day-blocks) (cl-first blocks-left))
-             (blocks-left (cl-rest day-blocks) (rest blocks-left))
+             (blocks-left (cl-rest day-blocks) (cl-rest blocks-left))
              (start (ts-parse (car pair)) (ts-parse (car pair)))
              (end (ts-parse (cdr pair)) (ts-parse (cdr pair))))
         ((or (null blocks-left)
