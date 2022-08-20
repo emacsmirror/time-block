@@ -66,6 +66,23 @@ following example.
                                                            "You have decided not to check news currently.\nStill start elfeed?")
 ```
 
+### Manually advising commands to be time-blocked
+
+Commands can also be manually advised.  This can be done to prevent
+only certain cases from happening.  For instance, I use the following
+code to delay myself from editing my emacs configuration during the
+workday.
+
+```elisp
+(defun my/buffer-sets-around-advice (orig name)
+    "Check if NAME is 'emacs', if so, follow time blocking logic before calling ORIG (`buffer-sets-load-set')."
+    (unless (and (string= name "emacs")
+                 (time-block-group-blocked-p :workday)
+                 (not (yes-or-no-p "You have decided not to edit your emacs configuration at this time.\nContinue?")))
+      (funcall orig name)))
+(advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
+```
+
 ## Errors and Bugs
 
 If you find an error or a bug, send an email to
