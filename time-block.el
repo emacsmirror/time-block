@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 0.3.0
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 
@@ -89,7 +89,7 @@
 (defcustom time-block-groups nil
   "Define time blocking groups.
 
-This variable is an alist from group names (symbols) to group
+This variable is an alist from group names (keywords) to group
 definitions.
 
 Group definitions are alists from days of the week (numbers,
@@ -105,7 +105,7 @@ Thursday   4
 Friday     5
 Saturday   6"
   :type '(alist :tag "Group Definitions"
-                :key-type (symbol :tag "Group Name")
+                :key-type (keyword :tag "Group Name")
                 :value-type (alist :tag "Group Definition"
                                    :key-type (natnum :tag "Day Number")
                                    :value-type (repeat :tag "Start/End Times"
@@ -164,9 +164,9 @@ BODY is the body of the code.  This should include an
                              (cl-first body)))
          (body (if interactive-spec (cl-rest body) body))
          (condition (if override-prompt
-                        `(and (time-block-group-blocked-p ',group)
+                        `(and (time-block-group-blocked-p ,group)
                               (not (yes-or-no-p ,override-prompt)))
-                      `(time-block-group-blocked-p ',group))))
+                      `(time-block-group-blocked-p ,group))))
     (if docstring
         `(defun ,name ,argslist
            ,docstring
@@ -187,9 +187,9 @@ Use BLOCK-MESSAGE to notify user if run is currently blocked by
 GROUP.  If OVERRIDE-PROMPT is present, use `yes-or-no-p' to ask
 if blocking should be overridden."
   (let ((condition (if override-prompt
-                       `(and (time-block-group-blocked-p ',group)
+                       `(and (time-block-group-blocked-p ,group)
                              (not (yes-or-no-p ,override-prompt)))
-                     `(time-block-group-blocked-p ',group))))
+                     `(time-block-group-blocked-p ,group))))
     `(progn
        (defun ,advice-name (orig &rest args)
          (interactive)

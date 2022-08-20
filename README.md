@@ -17,15 +17,20 @@ blocking groups and define time blocked commands.
 
 ### Time Blocking Groups
 
-Customize the variable `time-block-groups`.  An example of a groups definition is below.
+Customize the variable `time-block-groups`.  An example of a groups
+definition is below.
 
 ```elisp
-(setf time-block-groups '((workday . ((1 . (("09:00" . "17:00")))
-                                      (2 . (("09:00" . "17:00")))
-                                      (3 . (("09:00" . "17:00")))
-                                      (4 . (("09:00" . "17:00")))
-                                      (5 . (("09:00" . "17:00")))))))
+(setf time-block-groups '((:workday . ((1 . (("09:00" . "17:00")))
+                                       (2 . (("09:00" . "17:00")))
+                                       (3 . (("09:00" . "17:00")))
+                                       (4 . (("09:00" . "17:00")))
+                                       (5 . (("09:00" . "17:00")))))))
 ```
+
+This variable is an alist of names (keywords) to group definitions.  A
+group definition is an alist from days of the week (as numbers, Sunday
+= 0/7, etc.) to lists of start/stop pairs (times in "HH:MM" form).
 
 ### Defining Time Blocked Commands
 
@@ -39,8 +44,8 @@ using `yes-or-no-p`).  An example is shown below.
 
 ```elisp
 (define-time-blocked-command my/start-elfeed ()
-                             (workday "You have decided not to check news currently."
-                                      "You have decided not to check news currently.\nStill start elfeed?")
+                             (:workday "You have decided not to check news currently."
+                                       "You have decided not to check news currently.\nStill start elfeed?")
   "Start `elfeed'.
 
 Time blocked according to `time-block-groups'."
@@ -48,7 +53,7 @@ Time blocked according to `time-block-groups'."
   (elfeed))
 ```
 
-### Advising commands to be time-blocked
+### Automatically advising commands to be time-blocked
 
 Commands can also be advised to use timeblocking.  This works for
 simpler commands, and as a bonus, can make it harder to access the
@@ -57,8 +62,8 @@ commands when blocked.  Overall, the arguments for `group`,
 following example.
 
 ```elisp
-(time-block-advise my/elfeed-block-advice 'elfeed workday "You have decided not to check news currently."
-                                                          "You have decided not to check news currently.\nStill start elfeed?")
+(time-block-advise my/elfeed-block-advice 'elfeed :workday "You have decided not to check news currently."
+                                                           "You have decided not to check news currently.\nStill start elfeed?")
 ```
 
 ## Errors and Bugs
