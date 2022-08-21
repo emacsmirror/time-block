@@ -104,6 +104,7 @@ Wednesday  3
 Thursday   4
 Friday     5
 Saturday   6"
+  :group 'time-block
   :type '(alist :tag "Group Definitions"
                 :key-type (keyword :tag "Group Name")
                 :value-type (alist :tag "Group Definition"
