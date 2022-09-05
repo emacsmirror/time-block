@@ -146,6 +146,9 @@ Saturday   6"
   :type '(choice (const :tag "Continue blocking on holidays." nil)
                  (const :tag "Do not block on holidays." t)))
 
+
+;; Utility Functions
+
 (defun time-block-group-blocked-p (block-group)
   "Is group BLOCK-GROUP currently blocked?"
   (unless (and time-block-skip-on-holidays-p
@@ -168,6 +171,9 @@ Saturday   6"
                 (ts<= now end)))))))
 
 (make-obsolete 'timeblock-define-block-command 'define-time-blocked-command "time-block 0.1.0")
+
+
+;; Main definition macro
 
 (cl-defmacro define-time-blocked-command (name argslist (group block-message &optional override-prompt) &body body)
   "Define NAME as a time-blocked command.
@@ -215,6 +221,9 @@ BODY is the body of the code.  This should include an
          (if ,condition
              (message ,block-message)
            ,@body)))))
+
+
+;; Advice macro
 
 (defmacro time-block-advise (advice-name command group block-message &optional override-prompt)
   "Define `:around' advice for COMMAND called ADVICE-NAME.
