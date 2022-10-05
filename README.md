@@ -33,9 +33,11 @@ group definition is an alist from days of the week (as numbers, Sunday
 = 0/7, etc.) to lists of start/stop pairs (times in "HH:MM" form).
 
 It is also possible to ignore time blocking on holidays.  This is
-globally set using the `time-block-skip-on-holidays-p' variable.  This
+globally set using the `time-block-skip-on-holidays-p` variable.  This
 defaults to nil, which does not ignore blocking on holidays.  If set
-to t, time blocking will be ignored on holidays.
+to t, time blocking will be ignored on any holiday.  It may also be
+set to a regular expression or a list.  Holidays which match either
+representation will cause time blocking to be ignored.
 
 ### Defining Time Blocked Commands
 
