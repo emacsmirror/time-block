@@ -1,5 +1,7 @@
 # time-block
 
+[![MELPA](https://melpa.org/packages/time-block-badge.svg)](https://melpa.org/#/time-block)
+
 A method for blocking access to emacs commands based on time.
 
 ## Installation
@@ -7,8 +9,9 @@ A method for blocking access to emacs commands based on time.
 This package requires [`ts.el`](https://github.com/alphapapa/ts.el) to
 handle time parsing.
 
-Download `time-block.el` to somewhere on your `load-path` and
-load with `(require 'time-block)`.
+Download `time-block.el` to somewhere on your `load-path` and load
+with `(require 'time-block)`.  It is also available on
+[MELPA](https://melpa.org/#/time-block).
 
 ## Usage
 
