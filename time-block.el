@@ -5,6 +5,8 @@
 ;; Version: 1.2.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
+;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is not part of GNU Emacs.
 
