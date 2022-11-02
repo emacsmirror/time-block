@@ -1,6 +1,7 @@
 # time-block
 
 [![MELPA](https://melpa.org/packages/time-block-badge.svg)](https://melpa.org/#/time-block)
+[![REUSE status](https://api.reuse.software/badge/git.sr.ht/~swflint/time-block-command)](https://api.reuse.software/info/git.sr.ht/~swflint/time-block-command)
 
 A method for blocking access to emacs commands based on time.
 
