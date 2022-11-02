@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # -*- mode: gitignore; -*-
 .*
 !.gitignore
