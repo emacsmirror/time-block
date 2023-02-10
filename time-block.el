@@ -93,7 +93,7 @@
 ;;
 ;; Commands can also be manually advised.  This can be done to prevent
 ;; only certain cases from happening.  For instance, I use the following
-;; code to delay myself from editing my emacs configuration during the
+;; code to delay myself from editing my Emacs configuration during the
 ;; workday.
 ;;
 ;; (defun my/buffer-sets-around-advice (orig name)
