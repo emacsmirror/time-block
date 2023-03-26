@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 1.5.0
+;; Version: 1.5.1
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -299,7 +299,7 @@ BODY is the body of the code.  This should include an
          (body (if interactive-spec (cl-rest body) body))
          (condition (if override-prompt
                         `(and (time-block-group-blocked-p ,group)
-                              (not (time-block-confirm-override ,group ,prompt)))
+                              (not (time-block-confirm-override ,group ,override-prompt)))
                       `(time-block-group-blocked-p ,group))))
     (if docstring
         `(defun ,name ,argslist
@@ -325,7 +325,7 @@ GROUP.  If OVERRIDE-PROMPT is present, use
 `time-block-confirm-override' to override."
   (let ((condition (if override-prompt
                        `(and (time-block-group-blocked-p ,group)
-                             (not (time-block-confirm-override ,group ,prompt)))
+                             (not (time-block-confirm-override ,group ,override-prompt)))
                      `(time-block-group-blocked-p ,group))))
     `(progn
        (defun ,advice-name (orig &rest args)
