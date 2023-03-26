@@ -64,6 +64,21 @@ Time blocked according to `time-block-groups'."
   (elfeed))
 ```
 
+### Focus Mode
+
+A "focus mode" may be enabled using the `time-block-focus-mode`
+command.  This global minor mode by default will block all
+block-groups, but this behavior may be changed using
+`time-block-block-checkers`.
+
+### Checking if A Group Is Blocked
+
+You may check if a group is currently blocked using the
+`time-block-blocked-p` function, which uses the functions in
+`time-block-block-checkers` to determine if a group is presently
+blocked.  Functions in this hook must take one argument, a group name,
+and return non-nil if the group is to be blocked.
+
 ### Automatically advising commands to be time-blocked
 
 Commands can also be advised to use timeblocking.  This works for
@@ -88,7 +103,7 @@ workday.
 (defun my/buffer-sets-around-advice (orig name)
     "Check if NAME is 'emacs', if so, follow time blocking logic before calling ORIG (`buffer-sets-load-set')."
     (unless (and (string= name "emacs")
-                 (time-block-group-blocked-p :workday)
+                 (time-block-blocked-p :workday)
                  (not (time-block-confirm-override "You have decided not to edit your emacs configuration at this time.\nContinue?")))
       (funcall orig name)))
 (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
@@ -96,15 +111,15 @@ workday.
 
 ### Confirmation Functions
 
-When  an  automatically-advised  function  or  function  defined  with
-`define-time-block-command` provides an  override prompt, the function
+When an automatically-advised function or function defined with
+`define-time-block-command` provides an override prompt, the function
 `time-block-confirm-override` is used to confirm that the block should
-be    overriden.    This    is   done    following   the    logic   of
-`time-block-override-confirmation-functions`,  an   alist  from  block
-groups (or default  t) to prompting functions.  The prompting function
+be overriden.  This is done following the logic of
+`time-block-override-confirmation-functions`, an alist from block
+groups (or default t) to prompting functions.  The prompting function
 should take one argument (a confirmation prompt) and return non-nil if
 the block should be overridden.  The default is `yes-or-no-p`, but the
-functions            `time-block-override-math-question`           and
+functions `time-block-override-math-question` and
 `time-block-override-random-string` may be used as well.
 
 ## Errors and Bugs

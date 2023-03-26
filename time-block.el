@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 1.5.1
+;; Version: 1.6.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -90,6 +90,21 @@
 ;; (time-block-advise my/elfeed-block-advice 'elfeed workday "You have decided not to check news currently."
 ;;                    "You have decided not to check news currently.\nStill start elfeed?")
 ;;
+;;;; Focus Mode
+;;
+;; A "focus mode" may be enabled using the `time-block-focus-mode'
+;; command.  This global minor mode by default will block all
+;; block-groups, but this behavior may be changed using
+;; `time-block-block-checkers'.
+;;
+;;;; Checking if A Group Is Blocked
+;;
+;; You may check if a group is currently blocked using the
+;; `time-block-blocked-p' function, which uses the functions in
+;; `time-block-block-checkers' to determine if a group is presently
+;; blocked.  Functions in this hook must take one argument, a group
+;; name, and return non-nil if the group is to be blocked.
+;;
 ;;;; Manually advising commands to be time-blocked
 ;;
 ;; Commands can also be manually advised.  This can be done to prevent
@@ -100,7 +115,7 @@
 ;; (defun my/buffer-sets-around-advice (orig name)
 ;;   "Check if NAME is 'emacs', if so, follow time blocking logic before calling ORIG (`buffer-sets-load-set')."
 ;;   (unless (and (string= name "emacs")
-;;                (time-block-group-blocked-p :workday)
+;;                (time-block-blocked-p :workday)
 ;;                (not (time-block-confirm-override "You have decided not to edit your emacs configuration at this time.\nContinue?")))
 ;;     (funcall orig name)))
 ;; (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
@@ -194,6 +209,29 @@ yes/no question, type in a random ASCII string)."
                              (function-item :tag "Type Random String" time-block-override-random-string)
                              (function :tag "Arbitrary Function"))))
 
+(defcustom time-block-block-checkers (list
+                                      #'time-block-focus-mode-p
+                                      #'time-block-group-blocked-p)
+  "How should it be determined if a group is blocked?
+
+These functions should take one argument (a group), and return
+non-nil if the group should be blocked.  They are run one at a
+time until a function returns non-nil."
+  :group 'time-block
+  :type 'hook)
+
+
+;; Focus Mode
+
+(define-minor-mode time-block-focus-mode
+  "Enable `focus-mode' for time blocking."
+  :global t
+  :lighter " FOCUS")
+
+(defun time-block-focus-mode-p (_group)
+  "Is `focus mode' currently enabled?  See also `time-block-focus-mode-p'."
+  time-block-focus-mode)
+
 
 ;; Utility Functions
 
@@ -241,6 +279,12 @@ This obeys `time-block-override-confirmation-functions'."
                     (ts<= now end)))
            (and (ts<= start now)
                 (ts<= now end)))))))
+
+(defun time-block-blocked-p (group)
+  "Is GROUP currently blocked?
+
+Ways that a group may be blocked are determined by `time-block-block-checkers'."
+  (run-hook-with-args-until-success 'time-block-block-checkers group))
 
 
 
@@ -305,9 +349,9 @@ BODY is the body of the code.  This should include an
                              (cl-first body)))
          (body (if interactive-spec (cl-rest body) body))
          (condition (if override-prompt
-                        `(and (time-block-group-blocked-p ,group)
+                        `(and (time-block-blocked-p ,group)
                               (not (time-block-confirm-override ,group ,override-prompt)))
-                      `(time-block-group-blocked-p ,group))))
+                      `(time-block-blocked-p ,group))))
     (if docstring
         `(defun ,name ,argslist
            ,docstring
@@ -333,9 +377,9 @@ Use BLOCK-MESSAGE to notify user if run is currently blocked by
 GROUP.  If OVERRIDE-PROMPT is present, use
 `time-block-confirm-override' to override."
   (let ((condition (if override-prompt
-                       `(and (time-block-group-blocked-p ,group)
+                       `(and (time-block-blocked-p ,group)
                              (not (time-block-confirm-override ,group ,override-prompt)))
-                     `(time-block-group-blocked-p ,group))))
+                     `(time-block-blocked-p ,group))))
     `(progn
        (defun ,advice-name (orig &rest args)
          (interactive)
