@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 1.2.2
+;; Version: 1.3.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -103,6 +103,18 @@
 ;;                (not (yes-or-no-p "You have decided not to edit your emacs configuration at this time.\nContinue?")))
 ;;     (funcall orig name)))
 ;; (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
+;;
+;;;; Confirmation Functions
+;;
+;; When an automatically-advised function or function defined with
+;; `define-time-block-command' provides an override prompt, an
+;; override confirmation function (`time-block-confirmation-function')
+;; is used to ensure that you want to override it.  This defaults to
+;; `yes-or-no-p', but two additional functions are provided for
+;; convenience: `time-block-command-math-question' which will ask a
+;; basic arithmatic question, and `time-block-command-random-string'
+;; which requires a 16-32 character string be retyped.
+;;
 
 (require 'ts)
 (require 'cl-lib)
@@ -159,6 +171,21 @@ skipped; if a regexp, only holidays matching will be skipped."
                  (repeat :tag "Listed holidays" string)
                  (const :tag "All holidays" t)))
 
+(defcustom time-block-confirmation-function #'yes-or-no-p
+  "What command should be used to confirm overrides of time-blocked commands.
+
+This function should return nil if no override, t if override,
+and take one argument, a PROMPT.  This defaults to `yes-or-no-p',
+but the `time-block-command-math-question' and
+`time-block-command-random-string' functions may be used as
+well."
+  :group 'time-block
+  :type '(choice
+          (const :tag "Yes or No" yes-or-no-p)
+          (const :tag "Math Question" time-block-command-math-question)
+          (const :tag "Type Random String" time-block-command-random-string)
+          (function :tag "Arbitrary Function")))
+
 
 ;; Utility Functions
 
@@ -200,6 +227,34 @@ skipped; if a regexp, only holidays matching will be skipped."
 (make-obsolete 'timeblock-define-block-command 'define-time-blocked-command "time-block 0.1.0")
 
 
+;; Alternative block commands
+
+(defun time-block-command-math-question (prompt)
+  "Ask to override with PROMPT and a math problem.
+
+If user elects to override, then use a math problem (addition,
+multiplication, subtraction) to override."
+  (let* ((a (random 100))
+         (b (random 100))
+         (op (seq-random-elt (list '* '+ '-)))
+         (ans (funcall op a b)))
+    (and (yes-or-no-p (format-message prompt))
+         (= ans (read-number (format-message "Are you sure?\n%d %s %d = " a op b))))))
+
+(defun time-block-command-random-string (prompt)
+  "Ask to override with PROMPT and typing of random string.
+
+If user elects to override, then require a random 16-32 character
+string is typed exactly to override."
+  (let* ((length (+ 16 (random 17)))
+         (characters (cl-loop for i from 1 to length
+                              collect (+ 33 (random 94))))
+         (string (mapconcat #'(lambda (x) (format "%c" x)) characters nil)))
+    (and (yes-or-no-p (format-message prompt))
+         (string= string
+                  (read-string (format-message "Please type the string `%s': " string))))))
+
+
 ;; Main definition macro
 
 (cl-defmacro define-time-blocked-command (name argslist (group block-message &optional override-prompt) &body body)
@@ -214,7 +269,7 @@ whether or not to run.
 BLOCK-MESSAGE is the message to show when run is blocked.
 
 If OVERRIDE-PROMPT is present, then ask if blocking should be
-overriden.
+overriden using `time-block-confirmation-function'.
 
 BODY is the body of the code.  This should include an
 `interactive' specification matching \\=ARGSLIST.
@@ -234,7 +289,7 @@ BODY is the body of the code.  This should include an
          (body (if interactive-spec (cl-rest body) body))
          (condition (if override-prompt
                         `(and (time-block-group-blocked-p ,group)
-                              (not (yes-or-no-p ,override-prompt)))
+                              (not (funcall time-block-confirmation-function ,override-prompt)))
                       `(time-block-group-blocked-p ,group))))
     (if docstring
         `(defun ,name ,argslist
@@ -256,11 +311,12 @@ BODY is the body of the code.  This should include an
   "Define `:around' advice for COMMAND called ADVICE-NAME.
 
 Use BLOCK-MESSAGE to notify user if run is currently blocked by
-GROUP.  If OVERRIDE-PROMPT is present, use `yes-or-no-p' to ask
-if blocking should be overridden."
+GROUP.  If OVERRIDE-PROMPT is present, use
+`time-block-confirmation-function' to ask if blocking should be
+overridden."
   (let ((condition (if override-prompt
                        `(and (time-block-group-blocked-p ,group)
-                             (not (yes-or-no-p ,override-prompt)))
+                             (not (funcall time-block-confirmation-function ,override-prompt)))
                      `(time-block-group-blocked-p ,group))))
     `(progn
        (defun ,advice-name (orig &rest args)

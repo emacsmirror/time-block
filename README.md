@@ -94,6 +94,17 @@ workday.
 (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
 ```
 
+### Confirmation Functions
+
+When  an  automatically-advised  function  or  function  defined  with
+`define-time-block-command` provides  an override prompt,  an override
+confirmation function (`time-block-confirmation-function`)  is used to
+ensure that you want to  override it.  This defaults to `yes-or-no-p`,
+but   two  additional   functions   are   provided  for   convenience:
+`time-block-command-math-question` which  will ask a  basic arithmatic
+question,  and  `time-block-command-random-string`  which  requires  a
+16-32 character string be retyped.
+
 ## Errors and Bugs
 
 If you find an error or a bug, send an email to
