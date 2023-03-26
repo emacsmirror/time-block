@@ -1,7 +1,7 @@
 ;;; time-block.el --- Block running commands using time -*- lexical-binding: t -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; URL: https://git.sr.ht/~swflint/time-block
+;; URL: https://git.sr.ht/~swflint/time-block-command
 ;; Version: 1.6.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
