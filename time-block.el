@@ -61,13 +61,14 @@
 ;;
 ;;;; Defining Time Blocked Commands
 ;;
-;; Commands are only time-blocked if they're defined.  This is done using
-;; the `define-time-blocked-command` macro, which behaves similarly to
-;; `defun`.  After the lambda list, it has a list describing blocking and
-;; blocking messages.  This is composed of a symbol (a key in
-;; `time-block-groups') a block message, and an optional override prompt
-;; (if present, the command will ask if you'd like to override the block
-;;     using `yes-or-no-p').  An example is shown below.
+;; Commands are only time-blocked if they're defined.  This is done
+;; using the `define-time-blocked-command` macro, which behaves
+;; similarly to `defun`.  After the lambda list, it has a list
+;; describing blocking and blocking messages.  This is composed of a
+;; symbol (a key in `time-block-groups') a block message, and an
+;; optional override prompt (if present, the command will ask if you'd
+;; like to override the block using `time-block-confirm-override').
+;; An example is shown below.
 ;;
 ;; (define-time-blocked-command my/start-elfeed ()
 ;;                              (workday "You have decided not to check news currently."
@@ -100,7 +101,7 @@
 ;;   "Check if NAME is 'emacs', if so, follow time blocking logic before calling ORIG (`buffer-sets-load-set')."
 ;;   (unless (and (string= name "emacs")
 ;;                (time-block-group-blocked-p :workday)
-;;                (not (yes-or-no-p "You have decided not to edit your emacs configuration at this time.\nContinue?")))
+;;                (not (time-block-confirm-override "You have decided not to edit your emacs configuration at this time.\nContinue?")))
 ;;     (funcall orig name)))
 ;; (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
 ;;
@@ -175,7 +176,14 @@ skipped; if a regexp, only holidays matching will be skipped."
                  (const :tag "All holidays" t)))
 
 (defcustom time-block-override-confirmation-functions '((t . yes-or-no-p))
-  "How should different blocks be overriden?"
+  "How should different blocks be overriden?
+
+Alist from groups (or t) to a single-argument function (taking a
+PROMPT) which returns non-nil if the block should be overridden.
+Default functions are `yes-or-no-p',
+`time-block-override-math-question' (after yes/no question, solve
+a math problem), and `time-block-override-random-string' (after
+yes/no question, type in a random ASCII string)."
   :group 'time-block
   :type '(alist :key-type (choice
                            (symbol :tag "Group Name")
@@ -234,7 +242,6 @@ This obeys `time-block-override-confirmation-functions'."
            (and (ts<= start now)
                 (ts<= now end)))))))
 
-(make-obsolete 'timeblock-define-block-command 'define-time-blocked-command "time-block 0.1.0")
 
 
 ;; Alternative block commands
@@ -313,6 +320,8 @@ BODY is the body of the code.  This should include an
          (if ,condition
              (message ,block-message)
            ,@body)))))
+
+(make-obsolete 'timeblock-define-block-command 'define-time-blocked-command "time-block 0.1.0")
 
 
 ;; Advice macro

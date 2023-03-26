@@ -51,7 +51,7 @@ the `define-time-blocked-command` macro, which behaves similarly to
 blocking messages.  This is composed of a symbol (a key in
 `time-block-groups`) a block message, and an optional override prompt
 (if present, the command will ask if you'd like to override the block
-using `yes-or-no-p`).  An example is shown below.
+using `time-block-confirm-override`).  An example is shown below.
 
 ```elisp
 (define-time-blocked-command my/start-elfeed ()
@@ -89,7 +89,7 @@ workday.
     "Check if NAME is 'emacs', if so, follow time blocking logic before calling ORIG (`buffer-sets-load-set')."
     (unless (and (string= name "emacs")
                  (time-block-group-blocked-p :workday)
-                 (not (yes-or-no-p "You have decided not to edit your emacs configuration at this time.\nContinue?")))
+                 (not (time-block-confirm-override "You have decided not to edit your emacs configuration at this time.\nContinue?")))
       (funcall orig name)))
 (advice-add 'buffer-sets-load-set :around #'my/buffer-sets-around-advice)
 ```
