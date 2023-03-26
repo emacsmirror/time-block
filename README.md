@@ -97,13 +97,15 @@ workday.
 ### Confirmation Functions
 
 When  an  automatically-advised  function  or  function  defined  with
-`define-time-block-command` provides  an override prompt,  an override
-confirmation function (`time-block-confirmation-function`)  is used to
-ensure that you want to  override it.  This defaults to `yes-or-no-p`,
-but   two  additional   functions   are   provided  for   convenience:
-`time-block-command-math-question` which  will ask a  basic arithmatic
-question,  and  `time-block-command-random-string`  which  requires  a
-16-32 character string be retyped.
+`define-time-block-command` provides an  override prompt, the function
+`time-block-confirm-override` is used to confirm that the block should
+be    overriden.    This    is   done    following   the    logic   of
+`time-block-override-confirmation-functions`,  an   alist  from  block
+groups (or default  t) to prompting functions.  The prompting function
+should take one argument (a confirmation prompt) and return non-nil if
+the block should be overridden.  The default is `yes-or-no-p`, but the
+functions            `time-block-override-math-question`           and
+`time-block-override-random-string` may be used as well.
 
 ## Errors and Bugs
 

@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block
-;; Version: 1.3.0
+;; Version: 1.5.0
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -107,13 +107,16 @@
 ;;;; Confirmation Functions
 ;;
 ;; When an automatically-advised function or function defined with
-;; `define-time-block-command' provides an override prompt, an
-;; override confirmation function (`time-block-confirmation-function')
-;; is used to ensure that you want to override it.  This defaults to
-;; `yes-or-no-p', but two additional functions are provided for
-;; convenience: `time-block-command-math-question' which will ask a
-;; basic arithmatic question, and `time-block-command-random-string'
-;; which requires a 16-32 character string be retyped.
+;; `define-time-block-command' provides an override prompt, the
+;; function `time-block-confirm-override' is used to confirm that the
+;; block should be overriden.  This is done following the logic of
+;; `time-block-override-confirmation-functions', an alist from block
+;; groups (or default t) to prompting functions. The prompting
+;; function should take one argument (a confirmation prompt) and
+;; return non-nil if the block should be overridden.  The default is
+;; `yes-or-no-p', but the functions
+;; `time-block-override-math-question' and
+;; `time-block-override-random-string' may be used as well.
 ;;
 
 (require 'ts)
@@ -150,7 +153,7 @@ Friday     5
 Saturday   6"
   :group 'time-block
   :type '(alist :tag "Group Definitions"
-                :key-type (keyword :tag "Group Name")
+                :key-type (symbol :tag "Group Name")
                 :value-type (alist :tag "Group Definition"
                                    :key-type (natnum :tag "Day Number")
                                    :value-type (repeat :tag "Start/End Times"
@@ -171,23 +174,30 @@ skipped; if a regexp, only holidays matching will be skipped."
                  (repeat :tag "Listed holidays" string)
                  (const :tag "All holidays" t)))
 
-(defcustom time-block-confirmation-function #'yes-or-no-p
-  "What command should be used to confirm overrides of time-blocked commands.
-
-This function should return nil if no override, t if override,
-and take one argument, a PROMPT.  This defaults to `yes-or-no-p',
-but the `time-block-command-math-question' and
-`time-block-command-random-string' functions may be used as
-well."
+(defcustom time-block-override-confirmation-functions '((t . yes-or-no-p))
+  "How should different blocks be overriden?"
   :group 'time-block
-  :type '(choice
-          (const :tag "Yes or No" yes-or-no-p)
-          (const :tag "Math Question" time-block-command-math-question)
-          (const :tag "Type Random String" time-block-command-random-string)
-          (function :tag "Arbitrary Function")))
+  :type '(alist :key-type (choice
+                           (symbol :tag "Group Name")
+                           (const :tag "Default" t))
+                :value-type (choice
+                             (function-item :tag "Yes or No" yes-or-no-p)
+                             (function-item :tag "Math Question" time-block-override-math-question)
+                             (function-item :tag "Type Random String" time-block-override-random-string)
+                             (function :tag "Arbitrary Function"))))
 
 
 ;; Utility Functions
+
+(defun time-block-confirm-override (block-group prompt)
+  "Confirm override of BLOCK-GROUP using PROMPT.
+
+This obeys `time-block-override-confirmation-functions'."
+  (let ((prompt (format-message prompt))
+        (confirmation-function (cdr (or (assoc block-group time-block-override-confirmation-functions)
+                                        (assoc t time-block-override-confirmation-functions)))))
+    (message "confirmation function: %S" confirmation-function)
+    (funcall confirmation-function prompt)))
 
 (defun time-block-is-skipped-holiday-p ()
   "Determine if today is a skipped holiday."
@@ -229,7 +239,7 @@ well."
 
 ;; Alternative block commands
 
-(defun time-block-command-math-question (prompt)
+(defun time-block-override-math-question (prompt)
   "Ask to override with PROMPT and a math problem.
 
 If user elects to override, then use a math problem (addition,
@@ -238,10 +248,10 @@ multiplication, subtraction) to override."
          (b (random 100))
          (op (seq-random-elt (list '* '+ '-)))
          (ans (funcall op a b)))
-    (and (yes-or-no-p (format-message prompt))
+    (and (yes-or-no-p prompt)
          (= ans (read-number (format-message "Are you sure?\n%d %s %d = " a op b))))))
 
-(defun time-block-command-random-string (prompt)
+(defun time-block-override-random-string (prompt)
   "Ask to override with PROMPT and typing of random string.
 
 If user elects to override, then require a random 16-32 character
@@ -250,7 +260,7 @@ string is typed exactly to override."
          (characters (cl-loop for i from 1 to length
                               collect (+ 33 (random 94))))
          (string (mapconcat #'(lambda (x) (format "%c" x)) characters nil)))
-    (and (yes-or-no-p (format-message prompt))
+    (and (yes-or-no-p prompt)
          (string= string
                   (read-string (format-message "Please type the string `%s': " string))))))
 
@@ -269,7 +279,7 @@ whether or not to run.
 BLOCK-MESSAGE is the message to show when run is blocked.
 
 If OVERRIDE-PROMPT is present, then ask if blocking should be
-overriden using `time-block-confirmation-function'.
+overriden using `time-block-confirm-override'.
 
 BODY is the body of the code.  This should include an
 `interactive' specification matching \\=ARGSLIST.
@@ -289,7 +299,7 @@ BODY is the body of the code.  This should include an
          (body (if interactive-spec (cl-rest body) body))
          (condition (if override-prompt
                         `(and (time-block-group-blocked-p ,group)
-                              (not (funcall time-block-confirmation-function ,override-prompt)))
+                              (not (time-block-confirm-override ,group ,prompt)))
                       `(time-block-group-blocked-p ,group))))
     (if docstring
         `(defun ,name ,argslist
@@ -312,11 +322,10 @@ BODY is the body of the code.  This should include an
 
 Use BLOCK-MESSAGE to notify user if run is currently blocked by
 GROUP.  If OVERRIDE-PROMPT is present, use
-`time-block-confirmation-function' to ask if blocking should be
-overridden."
+`time-block-confirm-override' to override."
   (let ((condition (if override-prompt
                        `(and (time-block-group-blocked-p ,group)
-                             (not (funcall time-block-confirmation-function ,override-prompt)))
+                             (not (time-block-confirm-override ,group ,prompt)))
                      `(time-block-group-blocked-p ,group))))
     `(progn
        (defun ,advice-name (orig &rest args)
