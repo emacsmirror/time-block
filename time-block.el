@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block-command
-;; Version: 1.6.0
+;; Version: 1.6.1
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -242,7 +242,6 @@ This obeys `time-block-override-confirmation-functions'."
   (let ((prompt (format-message prompt))
         (confirmation-function (cdr (or (assoc block-group time-block-override-confirmation-functions)
                                         (assoc t time-block-override-confirmation-functions)))))
-    (message "confirmation function: %S" confirmation-function)
     (funcall confirmation-function prompt)))
 
 (defun time-block-is-skipped-holiday-p ()
