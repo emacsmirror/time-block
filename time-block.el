@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; URL: https://git.sr.ht/~swflint/time-block-command
-;; Version: 1.6.1
+;; Version: 1.6.2
 ;; Package-Requires: ((emacs "25.1") (ts "0.1"))
 ;; Keywords: tools, productivity, convenience
 ;; SPDX-FileCopyrightText: 2022 Samuel W. Flint <swflint@flintfam.org>
@@ -96,6 +96,13 @@
 ;; command.  This global minor mode by default will block all
 ;; block-groups, but this behavior may be changed using
 ;; `time-block-block-checkers'.
+;;
+;;;; Relaxed Mode
+;;
+;; A "relaxed mode" (disabling all blocking) may be enabled with the
+;; `time-block-relaxed-mode' command.  This global minor mode will
+;; disable all block groups (and ignore `time-block-focus-mode').  At
+;; present, this behavior is not configurable.
 ;;
 ;;;; Checking if A Group Is Blocked
 ;;
@@ -233,6 +240,14 @@ time until a function returns non-nil."
   time-block-focus-mode)
 
 
+;; Relaxed Mode
+
+(define-minor-mode time-block-relaxed-mode
+  "Disable time blocking temporarily."
+  :global t
+  :lighter " RELAXED")
+
+
 ;; Utility Functions
 
 (defun time-block-confirm-override (block-group prompt)
@@ -263,7 +278,8 @@ This obeys `time-block-override-confirmation-functions'."
 
 (defun time-block-group-blocked-p (block-group)
   "Is group BLOCK-GROUP currently blocked?"
-  (unless (time-block-is-skipped-holiday-p)
+  (unless (or time-block-relaxed-mode
+              (time-block-is-skipped-holiday-p))
     (when-let ((group (cl-rest (assoc block-group time-block-groups)))
                (ts-now (ts-now))
                (current-day (ts-dow ts-now))
