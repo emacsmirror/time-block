@@ -132,4 +132,4 @@ functions `time-block-override-math-question` and
 ## Errors and Bugs
 
 If you find an error or a bug, send an email to
-`~swflint/time-block-command@lists.sr.ht`.
+`~swflint/emacs-utilities@lists.sr.ht`.
